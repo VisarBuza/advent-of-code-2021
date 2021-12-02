@@ -48,7 +48,7 @@ module.exports = {
     semi: ['error', 'always'],
     'no-console': ['off'],
     'no-constant-condition': ['warn'],
-    curly: ['error', 'all'],
+    curly: ['off'],
     'brace-style': [
       'error',
       '1tbs',
