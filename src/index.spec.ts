@@ -3,6 +3,8 @@ import { PuzzleInterface } from './types/PuzzleInterface';
 import PuzzleFactory from './utils/PuzzleFactory';
 
 describe('AoC test runner', () => {
+  process.env.NODE_ENV = 'test';
+
   const dirs = readdirSync('./src/days', { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => dirent.name);

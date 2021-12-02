@@ -6,7 +6,9 @@ class PuzzleFactory {
     const puzzlePath = `src/days/${puzzleName}`;
     let input = '';
     try {
-      input = await readFile(`${puzzlePath}/input.txt`);
+      if (process.env.NODE_ENV === 'test')
+        input = await readFile(`${puzzlePath}/test-input.txt`);
+      else input = await readFile(`${puzzlePath}/input.txt`);
     } catch (error) {
       console.error(error);
       process.exit(1);
