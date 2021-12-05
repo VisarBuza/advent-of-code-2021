@@ -3,24 +3,12 @@ import Puzzle from '../../types/AbstractPuzzle';
 export default class ConcretePuzzle extends Puzzle {
   public solveFirst(): string {
     const arr = this.input.split('\n');
-    const mostCommon = Array(arr[0].length).fill(0);
+    const bitFrequencies = this.getBitFrequencies(arr);
 
-    for (const binary of arr) {
-      for (let i = 0; i < binary.length; i++)
-        if (binary[i] === '1') mostCommon[i]++;
-        else mostCommon[i]--;
-    }
+    const gammaRate = bitFrequencies.map(x => x >= 500 ? '1' : '0').join('');
+    const epsilonRate = bitFrequencies.map(x => x <= 500 ? '1' : '0').join('');
 
-    const gamma = parseInt(
-      mostCommon.map((x) => (x >= 0 ? '1' : '0')).join(''),
-      2
-    );
-    const epsilon = parseInt(
-      mostCommon.map((x) => (x >= 0 ? '0' : '1')).join(''),
-      2
-    );
-
-    return (gamma * epsilon).toString();
+    return (parseInt(gammaRate, 2) * parseInt(epsilonRate, 2)).toString();
   }
 
   public getFirstExpectedResult(): string {
@@ -30,39 +18,41 @@ export default class ConcretePuzzle extends Puzzle {
   public solveSecond(): string {
     const arr = this.input.split('\n');
 
-    const [oxygenNumber, co2Number] = [
-      this.getNumber(arr, 'oxygen'),
-      this.getNumber(arr, 'co2'),
-    ];
+    let oxygenGeneratorRating = arr;
+    let co2Rating = arr;
 
-    return (oxygenNumber * co2Number).toString();
-  }
-
-  private getNumber(arr: string[], type: 'oxygen' | 'co2'): number {
-    let numbers = [...arr];
-    let counter = 0;
-    const mainCharacter = type === 'oxygen' ? '1' : '0';
-    const secondaryCharacter = type === 'oxygen' ? '0' : '1';
-    for (let i = 0; i < arr[0].length; i++) {
-      for (const number of numbers) {
-        if (number[i] === mainCharacter) counter++;
-        else counter--;
-      }
-
-      let charToMatch = '';
-      if (type === 'oxygen') {
-        charToMatch = counter >= 0 ? mainCharacter : secondaryCharacter;
-      } else {
-        charToMatch = counter <= 0 ? mainCharacter : secondaryCharacter;
-      }
-
-      numbers = numbers.filter((x) => x[i] === charToMatch);
-      counter = 0;
-
-      if (numbers.length === 1) break;
+    let index = 0;
+    while (oxygenGeneratorRating.length > 1) {
+      const frequency = this.getBitFrequencies(oxygenGeneratorRating);
+      const majority = frequency[index] >= Math.ceil(oxygenGeneratorRating.length / 2) ? '1' : '0';
+      oxygenGeneratorRating = oxygenGeneratorRating.filter(x => x[index] == majority);
+      index++;
     }
 
-    return parseInt(numbers[0], 2);
+    index = 0;
+
+    while (co2Rating.length > 1) {
+      const frequency = this.getBitFrequencies(co2Rating);
+      const majority = frequency[index] < Math.ceil(co2Rating.length / 2) ? '1' : '0';
+      co2Rating = co2Rating.filter(x => x[index] == majority);
+      index++;
+    }
+
+    return (parseInt(oxygenGeneratorRating[0], 2) * parseInt(co2Rating[0], 2)).toString();
+  }
+
+  public getBitFrequencies(input: string[]) {
+    const bitFrequencies = new Array(12).fill(0);
+
+    for (let i = 0; i < input.length; i++) {
+      for (let j = 0; j < input[i].length; j++) {
+        if (input[i][j] === '1') {
+          bitFrequencies[j]++;
+        }
+      }
+    }
+
+    return bitFrequencies;
   }
 
   public getSecondExpectedResult(): string {
