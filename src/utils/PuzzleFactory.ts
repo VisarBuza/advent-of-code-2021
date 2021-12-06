@@ -14,7 +14,7 @@ class PuzzleFactory {
       process.exit(1);
     }
 
-    const puzzleModule: { default: { new (): Puzzle } } = await import(
+    const puzzleModule: { default: { new(): Puzzle } } = await import(
       `../days/${puzzleName}/Puzzle`
     );
 
