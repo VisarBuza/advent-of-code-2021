@@ -2,7 +2,6 @@ import Puzzle from '../../types/AbstractPuzzle';
 
 export default class ConcretePuzzle extends Puzzle {
   public solveFirst(): string {
-    // WRITE SOLUTION FOR TEST 1
     const arr = this.input.split(',').map(x => +x);
     const median = this.median(arr);
     const fuelSpent = arr.reduce((acc, next) => acc + Math.abs(next - median), 0);
