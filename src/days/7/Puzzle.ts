@@ -15,13 +15,25 @@ export default class ConcretePuzzle extends Puzzle {
   }
 
   public solveSecond(): string {
-    // WRITE SOLUTION FOR TEST 2
-    return 'day 1 solution 2';
+    const arr = this.input.split(',').map(x => +x);
+
+    let fuelSpent = Number.MAX_VALUE;
+    for (let i = 0; i <= 2000; i++) {
+      let current = 0;
+      for (let j = 0; j < arr.length; j++) {
+        const steps = Math.abs(arr[j] - i);
+        current += (steps * (steps + 1)) / 2;
+      }
+      if (current < fuelSpent)
+        fuelSpent = current;
+    }
+
+    return fuelSpent.toString();
   }
 
   public getSecondExpectedResult(): string {
     // RETURN EXPECTED SOLUTION FOR TEST 2;
-    return 'day 1 solution 2';
+    return '168';
   }
 
   public median(arr: number[]): number {
