@@ -2,71 +2,91 @@ import Puzzle from '../../types/AbstractPuzzle';
 
 export default class ConcretePuzzle extends Puzzle {
   public solveFirst(): string {
-    // WRITE SOLUTION FOR TEST 1
-    const heightmap = this.input.split('\n').map(row => row.split('').map(x => +x));
-    let sumOfRisk = 0;
-    for (let i = 0; i < heightmap.length; i++) {
-      for (let j = 0; j < heightmap[i].length; j++) {
-        if (this.isLowPoint(i, j, heightmap)) sumOfRisk += heightmap[i][j] + 1;
-      }
-    }
-    return sumOfRisk.toString();
-  }
+    const matrix = this.input
+      .split('\n')
+      .map((x) => x.split('').map((y) => +y));
 
-  public isLowPoint(row: number, column: number, heightmap: number[][]): boolean {
-    const entry = heightmap[row][column];
-    const leftEntry = column - 1 >= 0 ? heightmap[row][column - 1] : Number.MAX_VALUE;
-    const rightEntry = column + 1 < heightmap[row].length ? heightmap[row][column + 1] : Number.MAX_VALUE;
-    const upperEntry = row - 1 >= 0 ? heightmap[row - 1][column] : Number.MAX_VALUE;
-    const lowerEntry = row + 1 < heightmap.length ? heightmap[row + 1][column] : Number.MAX_VALUE;
-
-
-    return (entry < leftEntry) && (entry < rightEntry) && (entry < upperEntry) && (entry < lowerEntry);
+    const lowestPointCoordinates = this.getLowPointsPositions(matrix);
+    return lowestPointCoordinates
+      .reduce((acc, [i, j]) => acc + matrix[i][j] + 1, 0)
+      .toString();
   }
 
   public getFirstExpectedResult(): string {
-    // RETURN EXPECTED SOLUTION FOR TEST 1;
     return '15';
   }
 
   public solveSecond(): string {
-    // WRITE SOLUTION FOR TEST 2
-    const heightmap = this.input.split('\n').map(row => row.split('').map(x => +x));
-    const basins = [];
-    const visited = Array(heightmap.length).fill(Array(heightmap[0].length));
-    for (let i = 0; i < heightmap.length; i++) {
-      for (let j = 0; j < heightmap[i].length; j++) {
-        if (this.isLowPoint(i, j, heightmap)) {
-          basins.push(this.getBaisinSize(heightmap[i][j], i, j, heightmap, visited));
-        }
-      }
+    const matrix = this.input
+      .split('\n')
+      .map((x) => x.split('').map((y) => +y));
+    const basinSizes: number[] = [];
+
+    const lowestPointCoordinates = this.getLowPointsPositions(matrix);
+
+    for (const [i, j] of lowestPointCoordinates) {
+      basinSizes.push(this.getBasinSize(matrix, i, j));
     }
 
-    return basins.sort((a, b) => b - a).slice(0, 3).reduce((acc, curr) => acc * curr, 1).toString();
-  }
-
-  public getBaisinSize(entry: number, row: number, column: number, heightmap: number[][], visited: number[][]): number {
-    if (entry === null) return 0;
-    if (entry == 9)
-      return 0;
-    if (visited[row][column] == 1) return 0;
-
-    visited[row][column] = 1;
-
-    const leftEntry = column - 1 >= 0 ? heightmap[row][column - 1] : null;
-    const rightEntry = column + 1 < heightmap[row].length ? heightmap[row][column + 1] : null;
-    const upperEntry = row - 1 >= 0 ? heightmap[row - 1][column] : null;
-    const lowerEntry = row + 1 < heightmap.length ? heightmap[row + 1][column] : null;
-
-
-    return 1 + this.getBaisinSize(leftEntry, row, column - 1, heightmap, visited)
-      + this.getBaisinSize(rightEntry, row, column + 1, heightmap, visited)
-      + this.getBaisinSize(upperEntry, row - 1, column, heightmap, visited)
-      + this.getBaisinSize(lowerEntry, row + 1, column, heightmap, visited);
+    return basinSizes
+      .sort((a, b) => b - a)
+      .slice(0, 3)
+      .reduce((acc, curr) => acc * curr, 1)
+      .toString();
   }
 
   public getSecondExpectedResult(): string {
-    // RETURN EXPECTED SOLUTION FOR TEST 2;
     return '1134';
+  }
+
+  private getLowPointsPositions(matrix: number[][]): [number, number][] {
+    const lowestPoints: [number, number][] = [];
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix[0].length; j++) {
+        const current = matrix[i][j];
+        const neighbors = this.getNeighbors(matrix, i, j).map(
+          ([neighborI, neighborJ]) => matrix[neighborI][neighborJ]
+        );
+
+        if (current < Math.min(...neighbors)) lowestPoints.push([i, j]);
+      }
+    }
+
+    return lowestPoints;
+  }
+
+  private getBasinSize(
+    matrix: number[][],
+    i: number,
+    j: number,
+    visited: [number, number][] = []
+  ): number {
+    let size = 1;
+    visited.push([i, j]);
+    const neighbors = this.getNeighbors(matrix, i, j);
+
+    for (const [nextI, nextJ] of neighbors) {
+      if (
+        matrix[nextI][nextJ] !== 9 &&
+        !visited.some(
+          ([visitedI, visitedJ]) => visitedI === nextI && visitedJ === nextJ
+        )
+      ) {
+        size += this.getBasinSize(matrix, nextI, nextJ, visited);
+      }
+    }
+
+    return size;
+  }
+
+  private getNeighbors(matrix: number[][], i: number, j: number) {
+    const leftIndex = j - 1 >= 0 ? [i, j - 1] : null;
+    const topIndex = i - 1 >= 0 ? [i - 1, j] : null;
+    const rightIndex = j + 1 < matrix[0].length ? [i, j + 1] : null;
+    const bottomIndex = i + 1 < matrix.length ? [i + 1, j] : null;
+
+    return [leftIndex, topIndex, rightIndex, bottomIndex].filter(
+      (x) => x !== null
+    );
   }
 }

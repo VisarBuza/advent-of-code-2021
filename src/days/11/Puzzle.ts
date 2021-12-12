@@ -5,31 +5,59 @@ export default class ConcretePuzzle extends Puzzle {
     // WRITE SOLUTION FOR TEST 1
     const octopuses = this.input.split('\n').map(x => x.split('').map(x => new Octopus(+x)));
 
-    const score = this.simulateDays(100, octopuses);
+    const score = Array(100).fill(0).reduce((acc) => acc + this.simulateDay(octopuses), 0);
 
     return score.toString();
   }
 
-  public simulateDays(days: number, octopuses: Octopus[][]): number {
-    let score = 0;
-    for (let d = 0; d < days; d++) {
-      for (let i = 0; i < octopuses.length; i++) {
-        for (let j = 0; j < octopuses[i].length; j++) {
-          this.increaseEnergy(i, j, octopuses);
-        }
-      }
+  public getFirstExpectedResult(): string {
+    // RETURN EXPECTED SOLUTION FOR TEST 1;
+    return '1656';
+  }
 
-      for (let i = 0; i < octopuses.length; i++) {
-        for (let j = 0; j < octopuses[i].length; j++) {
-          octopuses[i][j].flashed = false;
-          if (octopuses[i][j].energyLevel > 9) {
-            score++;
-            octopuses[i][j].energyLevel = 0;
-          }
+  public solveSecond(): string {
+    // WRITE SOLUTION FOR TEST 2
+    const octopuses = this.input.split('\n').map(x => x.split('').map(x => new Octopus(+x)));
+
+    const score = this.getDayWhenAllDumbosFlash(octopuses);
+
+    return score.toString();
+  }
+
+  public getSecondExpectedResult(): string {
+    // RETURN EXPECTED SOLUTION FOR TEST 2;
+    return '195';
+  }
+
+  public simulateDay(octopuses: Octopus[][]): number {
+    let score = 0;
+    for (let i = 0; i < octopuses.length; i++) {
+      for (let j = 0; j < octopuses[i].length; j++) {
+        this.increaseEnergy(i, j, octopuses);
+      }
+    }
+
+    for (let i = 0; i < octopuses.length; i++) {
+      for (let j = 0; j < octopuses[i].length; j++) {
+        octopuses[i][j].flashed = false;
+        if (octopuses[i][j].energyLevel > 9) {
+          score++;
+          octopuses[i][j].energyLevel = 0;
         }
       }
     }
     return score;
+  }
+
+  public getDayWhenAllDumbosFlash(octopuses: Octopus[][]): number {
+    let day = 0;
+    let score = 0;
+    while (score != 100) {
+      score = 0;
+      score += this.simulateDay(octopuses);
+      day++;
+    }
+    return day;
   }
 
   increaseEnergy(i: number, j: number, octopuses: Octopus[][]) {
@@ -37,16 +65,10 @@ export default class ConcretePuzzle extends Puzzle {
     if (octopuses[i][j].energyLevel > 9) {
       if (octopuses[i][j].flashed) return;
       octopuses[i][j].flashed = true;
-      this.getNeighbors(i, j)
-        .filter(([row, column]) => this.isValid(row, column))
-        .forEach(([row, column]) => {
-          this.increaseEnergy(row, column, octopuses);
-        });
+      this.getNeighbors(i, j).forEach(([row, column]) => {
+        this.increaseEnergy(row, column, octopuses);
+      });
     }
-  }
-
-  public isValid(row: number, column: number): boolean {
-    return row >= 0 && row < 10 && column >= 0 && column < 10;
   }
 
   public getNeighbors(row: number, column: number) {
@@ -59,24 +81,7 @@ export default class ConcretePuzzle extends Puzzle {
       [row + 1, column - 1],
       [row + 1, column],
       [row + 1, column + 1]
-    ];
-  }
-
-
-
-  public getFirstExpectedResult(): string {
-    // RETURN EXPECTED SOLUTION FOR TEST 1;
-    return '1656';
-  }
-
-  public solveSecond(): string {
-    // WRITE SOLUTION FOR TEST 2
-    return 'day 1 solution 2';
-  }
-
-  public getSecondExpectedResult(): string {
-    // RETURN EXPECTED SOLUTION FOR TEST 2;
-    return 'day 1 solution 2';
+    ].filter(([row, column]) => row >= 0 && row < 10 && column >= 0 && column < 10);
   }
 }
 
